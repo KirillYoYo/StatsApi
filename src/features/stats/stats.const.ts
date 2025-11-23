@@ -1,29 +1,33 @@
 import { Levels } from '../../types/stats.types';
 
 export enum Metrics {
-    cost = 'cost',
-    orders = 'orders',
-    returns = 'returns',
+  cost = 'cost',
+  orders = 'orders',
+  returns = 'returns',
 
-    revenue = 'revenue',
-    buyouts = 'buyouts',
+  revenue = 'revenue',
+  buyouts = 'buyouts',
 }
 
 export const METRICS_LABELS = {
-    [Metrics.cost]: 'Cost',
-    [Metrics.orders]: 'Orders',
-    [Metrics.returns]: 'Returns',
-    [Metrics.revenue]: 'Revenue',
-    [Metrics.buyouts]: 'Buyouts',
+  [Metrics.cost]: 'Cost',
+  [Metrics.orders]: 'Orders',
+  [Metrics.returns]: 'Returns',
+  [Metrics.revenue]: 'Revenue',
+  [Metrics.buyouts]: 'Buyouts',
 } as const satisfies Record<Metrics, string>;
 
 export const METADATA_LABELS = {
-    [Levels.supplier]: 'Supplier',
-    [Levels.brand]: 'Brand',
-    [Levels.type]: 'Type',
-    [Levels.article]: 'Article',
+  [Levels.supplier]: 'Supplier',
+  [Levels.brand]: 'Brand',
+  [Levels.type]: 'Type',
+  [Levels.article]: 'Article',
 } as const satisfies Record<Levels, string>;
 
 export function isMetric(value: string): value is Metrics {
-    return Object.values(Metrics).includes(value as Metrics);
+  return Object.values(Metrics).includes(value as Metrics);
 }
+
+export const USER_ID = 'my_user_id';
+export const DATABASE_PREFIX = 'AdStatsDB_';
+export const DATABASE_NAME = DATABASE_PREFIX + USER_ID;
