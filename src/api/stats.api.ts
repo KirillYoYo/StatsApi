@@ -84,7 +84,7 @@ class StatsApi {
       this.db = new AdStatsDatabase();
     }
 
-    this.onProgress?.(`${0}`);
+    this.onProgress?.(`getting data...`);
     console.log('get data from api...');
     const rawData: IStatItemRaw[] = await this.request({
       action: 'getStatsData',
@@ -459,6 +459,7 @@ class StatsApi {
     if (!this.db) {
       return;
     }
+    this.onProgress?.(`${0}`);
     let successfulAdds = 0;
     let failedAdds = 0;
 

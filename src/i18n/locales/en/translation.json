@@ -1,0 +1,52 @@
+{
+  "grid": {
+    "sortAscending": "Sort Ascending",
+    "sortDescending": "Sort Descending",
+    "clearSort": "Clear Sort",
+    "filterOoo": "Filter...",
+    "equals": "Equals",
+    "notEqual": "Not equal",
+    "lessThan": "Less than",
+    "greaterThan": "Greater than",
+    "inRange": "In range",
+    "contains": "Contains",
+    "notContains": "Not contains",
+    "startsWith": "Starts with",
+    "endsWith": "Ends with",
+    "searchOoo": "Search...",
+    "selectAll": "Select All",
+    "blank": "Blank",
+    "notBlank": "Not blank",
+    "applyFilter": "Apply",
+    "resetFilter": "Reset",
+    "clearFilter": "Clear",
+    "columns": {
+      "sum": "Sum",
+      "average": "Average",
+      "revenue": "Revenue",
+      "buyouts": "Buyouts",
+      "cost": "Cost",
+      "orders": "Orders",
+      "returns": "Returns",
+      "article": "Article",
+      "supplier": "Supplier",
+      "brand": "Brand",
+      "type": "Type"
+    },
+    "autoGroup": {
+      "headerName": "Article"
+    },
+    "noRowsToShow": "No data to show",
+    "loadingOoo": "Loading..."
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "lightTheme": "Light Theme",
+    "darkTheme": "Dark Theme"
+  },
+  "progress": {
+    "updating": "Database is updating, please do not refresh page: ",
+    "loading": "Loading data..."
+  }
+}

@@ -21,7 +21,7 @@ const StatsLoader = ({ progress }: { progress?: string }) => {
           backgroundColor: 'rgba(0,0,0, 0.5)',
         }}
       >
-        Database is updating, pls do not refresh page <br /> {progress}%
+        {progress}
       </span>
     </div>
   );

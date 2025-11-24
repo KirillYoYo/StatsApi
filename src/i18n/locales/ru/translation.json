@@ -1,0 +1,52 @@
+{
+  "grid": {
+    "sortAscending": "Сортировка по возрастанию",
+    "sortDescending": "Сортировка по убыванию",
+    "clearSort": "Очистить сортировку",
+    "filterOoo": "Фильтр...",
+    "equals": "Равно",
+    "notEqual": "Не равно",
+    "lessThan": "Меньше",
+    "greaterThan": "Больше",
+    "inRange": "В диапазоне",
+    "contains": "Содержит",
+    "notContains": "Не содержит",
+    "startsWith": "Начинается с",
+    "endsWith": "Заканчивается на",
+    "searchOoo": "Поиск...",
+    "selectAll": "Выбрать все",
+    "blank": "Пусто",
+    "notBlank": "Не пусто",
+    "applyFilter": "Применить",
+    "resetFilter": "Сбросить",
+    "clearFilter": "Очистить",
+    "columns": {
+      "sum": "Сумма",
+      "average": "Среднее",
+      "revenue": "Выручка",
+      "buyouts": "Выкупы",
+      "cost": "Себестоимость",
+      "orders": "Заказы",
+      "returns": "Возвраты",
+      "article": "Артикул",
+      "supplier": "Поставщик",
+      "brand": "Бренд",
+      "type": "Тип"
+    },
+    "autoGroup": {
+      "headerName": "Артикул"
+    },
+    "noRowsToShow": "Нет данных для отображения",
+    "loadingOoo": "Загрузка..."
+  },
+  "theme": {
+    "light": "Светлая тема",
+    "dark": "Тёмная тема",
+    "lightTheme": "Светлая тема",
+    "darkTheme": "Тёмная тема"
+  },
+  "progress": {
+    "updating": "База данных обновляется, не обновляйте страницу: ",
+    "loading": "Загрузка данных..."
+  }
+}

@@ -11,11 +11,15 @@ import {
 import { IStatItem } from '../../../types/stats.types.ts';
 import { useSearchParams } from 'react-router-dom';
 import { Metrics } from '../stats.const.ts';
-import { statsGridColumnsFactory } from './stats-grid.columns.ts';
+import { useStatsGridColumns } from './stats-grid.columns.ts';
 import { STATS_API } from '../../../api/stats.api.ts';
 import './stats-grid.scss';
 import StatsLoader from './statsLoader.tsx';
-import { useBootstrapTheme } from '../../../shared/hooks.ts';
+import {
+  useBootstrapTheme,
+  useGridLocalization,
+} from '../../../shared/hooks.ts';
+import { useTranslation } from 'react-i18next';
 
 ModuleRegistry.registerModules([ServerSideRowModelModule]);
 
@@ -34,6 +38,9 @@ export function StatsGrid() {
   const metric = searchParams.get('metric') ?? Metrics.cost;
   const [progress, setProgress] = useState<string | null>(null);
   const { isDark, setIsDark } = useBootstrapTheme();
+  const statsGridColumnsFactory = useStatsGridColumns();
+  const { t, i18n } = useTranslation();
+  const { localeText } = useGridLocalization();
 
   useEffect(() => {
     STATS_API.setProgressCallback(setProgress);
@@ -51,7 +58,7 @@ export function StatsGrid() {
           .split('T')[0],
     );
     setColumnDefs(statsGridColumnsFactory(metric, dates));
-  }, [metric]);
+  }, [metric, i18n.language]);
 
   const datasource = useMemo(
     () => ({
@@ -126,11 +133,29 @@ export function StatsGrid() {
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       <div style={{ position: 'absolute', top: -80, right: 4, zIndex: 3 }}>
         <button onClick={() => setIsDark(!isDark)}>
-          {isDark ? 'Dark Theme' : 'Light theme'}
+          {isDark ? t('theme.darkTheme') : t('theme.lightTheme')}
         </button>
       </div>
+      <div style={{ position: 'absolute', top: -80, right: 124, zIndex: 3 }}>
+        <select
+          value={i18n.language}
+          onChange={(e) => i18n.changeLanguage(e.target.value)}
+          style={{
+            padding: '4px 8px',
+            borderRadius: '4px',
+            border: '1px solid #ccc',
+            backgroundColor: 'var(--bs-body-bg)',
+            color: 'var(--bs-body-color)',
+          }}
+        >
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+        </select>
+      </div>
       {progress && progress !== '100.0' && (
-        <StatsLoader progress={progress}></StatsLoader>
+        <StatsLoader
+          progress={`${t('progress.updating')} ${progress}%`}
+        ></StatsLoader>
       )}
       <div className="stats-grid ag-theme-balham">
         <AgGridReact
@@ -147,7 +172,7 @@ export function StatsGrid() {
           autoGroupColumnDef={{
             menuTabs: ['columnsMenuTab'],
             pinned: 'left',
-            headerName: 'Article',
+            headerName: t('grid.columns.article'),
             field: 'article',
             cellRenderer: 'agGroupCellRenderer',
             cellRendererParams: {
@@ -155,6 +180,7 @@ export function StatsGrid() {
               innerRenderer: groupChildCountRenderer,
             },
           }}
+          localeText={localeText}
           columnDefs={columnDefs}
           theme={themeBalham.withParams({
             backgroundColor: 'var(--bs-body-bg)',

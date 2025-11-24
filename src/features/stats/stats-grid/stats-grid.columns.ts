@@ -5,99 +5,107 @@ import {
   ValueGetterParams,
 } from 'ag-grid-community';
 import { IStatItem, ORDERED_LEVELS } from '../../../types/stats.types';
-import { METADATA_LABELS } from '../stats.const';
+import { useTranslation } from 'react-i18next';
 
-export function statsGridColumnsFactory<T extends IStatItem>(
-  metric: string,
-  dates: string[],
-): ColDef<T>[] {
-  const metadataColumns: ColDef<T>[] = ORDERED_LEVELS.map((level, index) => ({
-    colId: level,
-    headerName: METADATA_LABELS[level],
-    field: level as ColDefField<T>,
-    rowGroup: level !== 'article',
-    rowGroupIndex: index,
-    initialHide: true,
-  }));
+export function useStatsGridColumns() {
+  const { t } = useTranslation();
 
-  const sumColumn: ColDef<T> = {
-    headerName: 'Sum',
-    colId: 'sums',
-    valueGetter: (params: ValueGetterParams<T>) => {
-      const data = params.data;
-      if (!data) return 0;
+  const statsGridColumnsFactory = (
+    metric: string,
+    dates: string[],
+  ): ColDef<IStatItem>[] => {
+    const metadataColumns: ColDef<IStatItem>[] = ORDERED_LEVELS.map(
+      (level, index) => ({
+        colId: level,
+        headerName: t(`grid.columns.${level}`), // Локализованные заголовки
+        field: level as ColDefField<IStatItem>,
+        rowGroup: level !== 'article',
+        rowGroupIndex: index,
+        initialHide: true,
+      }),
+    );
 
-      switch (metric) {
-        case 'cost':
-          return data.totalCost || calculateTotal(data.cost);
-        case 'orders':
-          return data.totalOrders || calculateTotal(data.orders);
-        case 'returns':
-          return data.totalReturns || calculateTotal(data.returns);
-        case 'revenue':
-          return data.totalRevenue || calculateTotal(calculateRevenue(data));
-        case 'buyouts':
-          return data.totalBuyouts || calculateTotal(calculateBuyouts(data));
-        default:
-          return 0;
-      }
-    },
-    valueFormatter: (params: ValueFormatterParams<T>) => {
-      return params.value?.toLocaleString('ru-RU') || '0';
-    },
-  };
-
-  const averageColumn: ColDef<T> = {
-    headerName: 'Average',
-    colId: 'average',
-    valueGetter: (params: ValueGetterParams<T>) => {
-      const data = params.data;
-      if (!data) return 0;
-
-      const metricData = getMetricArray(data, metric);
-      if (metricData && metricData.length > 0) {
-        const sum = metricData.reduce(
-          (sum: number, value: number) => sum + value,
-          0,
-        );
-        return sum / metricData.length;
-      }
-
-      return 0;
-    },
-    valueFormatter: (params: ValueFormatterParams<T>) => {
-      return params.value?.toFixed(2) || '0';
-    },
-  };
-
-  const datesColumns: ColDef<T>[] = dates.map((date, index) => {
-    const dataIndex = dates.length - 1 - index;
-
-    return {
-      headerName: date,
-      colId: `${index}`,
-      valueGetter: (params: ValueGetterParams<T>) => {
+    const sumColumn: ColDef<IStatItem> = {
+      headerName: t('grid.columns.sum'), // "Сумма" или "Sum"
+      colId: 'sums',
+      valueGetter: (params: ValueGetterParams<IStatItem>) => {
         const data = params.data;
         if (!data) return 0;
 
-        if (metric === 'revenue') {
-          return calculateDailyRevenue(data, dataIndex);
+        switch (metric) {
+          case 'cost':
+            return data.totalCost || calculateTotal(data.cost);
+          case 'orders':
+            return data.totalOrders || calculateTotal(data.orders);
+          case 'returns':
+            return data.totalReturns || calculateTotal(data.returns);
+          case 'revenue':
+            return data.totalRevenue || calculateTotal(calculateRevenue(data));
+          case 'buyouts':
+            return data.totalBuyouts || calculateTotal(calculateBuyouts(data));
+          default:
+            return 0;
         }
-
-        if (metric === 'buyouts') {
-          return calculateDailyBuyouts(data, dataIndex);
-        }
-
-        const metricData = getMetricArray(data, metric);
-        return metricData?.[dataIndex] || 0;
       },
-      valueFormatter: (params: ValueFormatterParams<T>) => {
-        return params.value?.toLocaleString() ?? '';
+      valueFormatter: (params: ValueFormatterParams<IStatItem>) => {
+        return params.value?.toLocaleString('ru-RU') || '0';
       },
     };
-  });
 
-  return [...metadataColumns, sumColumn, averageColumn, ...datesColumns];
+    const averageColumn: ColDef<IStatItem> = {
+      headerName: t('grid.columns.average'), // "Среднее" или "Average"
+      colId: 'average',
+      valueGetter: (params: ValueGetterParams<IStatItem>) => {
+        const data = params.data;
+        if (!data) return 0;
+
+        const metricData = getMetricArray(data, metric);
+        if (metricData && metricData.length > 0) {
+          const sum = metricData.reduce(
+            (sum: number, value: number) => sum + value,
+            0,
+          );
+          return sum / metricData.length;
+        }
+
+        return 0;
+      },
+      valueFormatter: (params: ValueFormatterParams<IStatItem>) => {
+        return params.value?.toFixed(2) || '0';
+      },
+    };
+
+    const datesColumns: ColDef<IStatItem>[] = dates.map((date, index) => {
+      const dataIndex = dates.length - 1 - index;
+
+      return {
+        headerName: `${t(`grid.columns.${metric}`)} ${date}`, // Локализованное название метрики + дата
+        colId: `${index}`,
+        valueGetter: (params: ValueGetterParams<IStatItem>) => {
+          const data = params.data;
+          if (!data) return 0;
+
+          if (metric === 'revenue') {
+            return calculateDailyRevenue(data, dataIndex);
+          }
+
+          if (metric === 'buyouts') {
+            return calculateDailyBuyouts(data, dataIndex);
+          }
+
+          const metricData = getMetricArray(data, metric);
+          return metricData?.[dataIndex] || 0;
+        },
+        valueFormatter: (params: ValueFormatterParams<IStatItem>) => {
+          return params.value?.toLocaleString() ?? '';
+        },
+      };
+    });
+
+    return [...metadataColumns, sumColumn, averageColumn, ...datesColumns];
+  };
+
+  return statsGridColumnsFactory;
 }
 
 function calculateDailyRevenue(data: IStatItem, dayIndex: number): number {
