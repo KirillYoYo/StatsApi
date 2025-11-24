@@ -15,6 +15,7 @@ import { statsGridColumnsFactory } from './stats-grid.columns.ts';
 import { STATS_API } from '../../../api/stats.api.ts';
 import './stats-grid.scss';
 import StatsLoader from './statsLoader.tsx';
+import { useBootstrapTheme } from '../../../shared/hooks.ts';
 
 ModuleRegistry.registerModules([ServerSideRowModelModule]);
 
@@ -32,6 +33,7 @@ export function StatsGrid() {
   const [searchParams] = useSearchParams();
   const metric = searchParams.get('metric') ?? Metrics.cost;
   const [progress, setProgress] = useState<string | null>(null);
+  const { isDark, setIsDark } = useBootstrapTheme();
 
   useEffect(() => {
     STATS_API.setProgressCallback(setProgress);
@@ -122,6 +124,11 @@ export function StatsGrid() {
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+      <div style={{ position: 'absolute', top: -80, right: 4, zIndex: 3 }}>
+        <button onClick={() => setIsDark(!isDark)}>
+          {isDark ? 'Dark Theme' : 'Light theme'}
+        </button>
+      </div>
       {progress && progress !== '100.0' && (
         <StatsLoader progress={progress}></StatsLoader>
       )}
@@ -148,12 +155,12 @@ export function StatsGrid() {
               innerRenderer: groupChildCountRenderer,
             },
           }}
+          columnDefs={columnDefs}
           theme={themeBalham.withParams({
             backgroundColor: 'var(--bs-body-bg)',
             foregroundColor: 'var(--bs-body-color)',
-            browserColorScheme: 'light',
+            browserColorScheme: 'auto',
           })}
-          columnDefs={columnDefs}
         />
       </div>
     </div>

@@ -1,1 +1,11 @@
 @import 'bootstrap/scss/bootstrap';
+
+.ag-theme-balham {
+  --ag-background-color: var(--bs-body-bg);
+  --ag-foreground-color: var(--bs-body-color);
+  --ag-header-background-color: var(--bs-secondary-bg);
+  --ag-header-foreground-color: var(--bs-body-color);
+  --ag-border-color: var(--bs-border-color);
+  --ag-row-hover-color: var(--bs-secondary-bg);
+  --ag-odd-row-background-color: var(--bs-tertiary-bg);
+}
