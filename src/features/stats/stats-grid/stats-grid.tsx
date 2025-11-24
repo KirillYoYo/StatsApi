@@ -1,22 +1,46 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { useEffect, useRef, useState } from 'react';
-import { IStatItem } from '../../../types/stats.types';
-import { STATS_API } from '../../../api/stats.api';
-import { ColDef, themeBalham } from 'ag-grid-enterprise';
+import { GridReadyEvent, IServerSideGetRowsParams } from 'ag-grid-community';
+import { ModuleRegistry } from 'ag-grid-community';
+import {
+  ColDef,
+  ICellRendererParams,
+  ServerSideRowModelModule,
+  themeBalham,
+} from 'ag-grid-enterprise';
+import { IStatItem } from '../../../types/stats.types.ts';
 import { useSearchParams } from 'react-router-dom';
-import { Metrics } from '../stats.const';
-import { statsGridColumnsFactory } from './stats-grid.columns';
+import { Metrics } from '../stats.const.ts';
+import { statsGridColumnsFactory } from './stats-grid.columns.ts';
+import { STATS_API } from '../../../api/stats.api.ts';
 import './stats-grid.scss';
+import StatsLoader from './statsLoader.tsx';
+
+ModuleRegistry.registerModules([ServerSideRowModelModule]);
+
+interface IRequestParams {
+  level: number;
+  parentSupplier?: string;
+  parentBrand?: string;
+  parentType?: string;
+}
 
 export function StatsGrid() {
-  const [rowData, setRowData] = useState<IStatItem[] | null>(null);
-  const [columnDefs, setColumnDefs] = useState<ColDef<IStatItem>[]>([]);
+  const [columnDefs, setColumnDefs] = useState<(ColDef<IStatItem> | ColDef)[]>(
+    [],
+  );
   const [searchParams] = useSearchParams();
   const metric = searchParams.get('metric') ?? Metrics.cost;
-  const didMountRef = useRef<boolean>(false);
   const [progress, setProgress] = useState<string | null>(null);
 
   useEffect(() => {
+    STATS_API.setProgressCallback(setProgress);
+  }, []);
+
+  useEffect(() => {
+    if (!metric) {
+      return;
+    }
     const dates = Array.from(
       { length: 30 },
       (_, i) =>
@@ -27,65 +51,113 @@ export function StatsGrid() {
     setColumnDefs(statsGridColumnsFactory(metric, dates));
   }, [metric]);
 
-  useEffect(() => {
-    if (didMountRef.current) return; // для дев разработки, чтобы 2 раза не срабатывало
-    didMountRef.current = true;
+  const datasource = useMemo(
+    () => ({
+      getRows: async (params: IServerSideGetRowsParams) => {
+        try {
+          const requestParams: IRequestParams = {
+            level: params.request.groupKeys?.length || 0,
+          };
 
-    STATS_API.setProgressCallback(setProgress);
+          if (params.request.groupKeys && params.request.groupKeys.length > 0) {
+            const level = params.request.groupKeys.length;
+            if (level === 1) {
+              requestParams.parentSupplier = params.request
+                .groupKeys[0] as string;
+            } else if (level === 2) {
+              requestParams.parentSupplier = params.request
+                .groupKeys[0] as string;
+              requestParams.parentBrand = params.request.groupKeys[1] as string;
+            } else if (level === 3) {
+              requestParams.parentSupplier = params.request
+                .groupKeys[0] as string;
+              requestParams.parentBrand = params.request.groupKeys[1] as string;
+              requestParams.parentType = params.request.groupKeys[2] as string;
+            }
+          }
 
-    let t_1 = Date.now();
-    STATS_API.getHierarchyData({ level: 0 }).then((data) => {
-      setRowData(data);
-      console.log('get level 0 at:', `${Date.now() - t_1}ms`);
-    });
-  }, []);
+          const result = await STATS_API.getHierarchyData(requestParams);
+
+          params.success({
+            rowData: result,
+            rowCount: result.length,
+          });
+        } catch (error) {
+          console.error('Ошибка загрузки данных:', error);
+          params.fail();
+        }
+      },
+    }),
+    [],
+  );
+
+  const onGridReady = useCallback(
+    (params: GridReadyEvent) => {
+      params.api.setGridOption('serverSideDatasource', datasource);
+    },
+    [datasource],
+  );
+
+  const groupChildCountRenderer = (params: ICellRendererParams) => {
+    if (!params.node.group) {
+      return params.value;
+    }
+
+    const node = params.node;
+    const childCount =
+      node.allChildrenCount ||
+      node.childrenAfterFilter?.length ||
+      (params.data?.childCount as number) ||
+      0;
+
+    return (
+      <span>
+        {params.value}
+        <span style={{ color: '#666', fontSize: '0.8em', marginLeft: '8px' }}>
+          ({childCount})
+        </span>
+      </span>
+    );
+  };
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       {progress && progress !== '100.0' && (
-        <div
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(0,0,0, 0.1)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 5,
-          }}
-        >
-          <span
-            style={{
-              padding: 20,
-              color: '#fff',
-              backgroundColor: 'rgba(0,0,0, 0.5)',
-            }}
-          >
-            Loading database {progress}%
-          </span>
-        </div>
+        <StatsLoader progress={progress}></StatsLoader>
       )}
       <div className="stats-grid ag-theme-balham">
         <AgGridReact
+          defaultColDef={{
+            sortable: true,
+            filter: true,
+            resizable: true,
+          }}
+          rowModelType="serverSide"
+          cacheBlockSize={100}
+          maxBlocksInCache={10}
+          onGridReady={onGridReady}
           groupHideParentOfSingleChild="leafGroupsOnly"
           autoGroupColumnDef={{
             menuTabs: ['columnsMenuTab'],
             pinned: 'left',
             headerName: 'Article',
             field: 'article',
+            cellRenderer: 'agGroupCellRenderer',
+            cellRendererParams: {
+              suppressCount: false,
+              innerRenderer: groupChildCountRenderer,
+            },
           }}
           theme={themeBalham.withParams({
             backgroundColor: 'var(--bs-body-bg)',
             foregroundColor: 'var(--bs-body-color)',
             browserColorScheme: 'light',
           })}
-          rowData={rowData}
           columnDefs={columnDefs}
-        ></AgGridReact>
+        />
       </div>
     </div>
   );
 }
+
+export default StatsGrid;

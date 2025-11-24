@@ -13,7 +13,7 @@ export const ORDERED_LEVELS = [
 ] as const;
 
 // данные с бэкенда
-interface IStatItemRaw {
+export interface IStatItemRaw {
   type: string; // тип
   article: string; // артикул
   brand: string; // бренд
@@ -24,23 +24,21 @@ interface IStatItemRaw {
   lastUpdate: string; // дата последнего обновления
 }
 
-// расширенная модель данных для отображения в гриде
-export interface IStatItem extends IStatItemRaw {
-  revenue?: number[]; // расход за день; считается как cost *
-  buyouts?: number[]; // выкупы за день; считается как orders - returns
-
-  sums?: {
-    cost: number;
-    orders: number;
-    returns: number;
-    revenue: number;
-    buyouts: number;
-  };
-  average?: {
-    cost: number;
-    orders: number;
-    returns: number;
-    revenue: number;
-    buyouts: number;
-  };
+export interface IStatItem {
+  article: string;
+  type: string;
+  brand: string;
+  supplier: string;
+  cost: number[];
+  orders: number[];
+  returns: number[];
+  lastUpdate: string;
+  revenue?: number[];
+  buyouts?: number[];
+  totalCost?: number;
+  totalOrders?: number;
+  totalReturns?: number;
+  totalRevenue?: number;
+  totalBuyouts?: number;
+  childCount?: number;
 }

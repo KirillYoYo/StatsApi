@@ -12,13 +12,14 @@ export interface IHierarchyStatItem extends IStatItem {
   totalOrders?: number;
   totalReturns?: number;
   avgCost?: number;
+  childCount: number;
 }
 
 export class AdStatsDatabase extends Dexie {
   stats!: Table<IHierarchyStatItem>;
 
   constructor() {
-    super(DATABASE_NAME); // Уникальное имя для каждого пользователя
+    super(DATABASE_NAME);
 
     this.version(1).stores({
       stats: `
