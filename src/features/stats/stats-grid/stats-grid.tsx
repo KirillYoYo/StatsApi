@@ -20,6 +20,7 @@ import {
   useGridLocalization,
 } from '../../../shared/hooks.ts';
 import { useTranslation } from 'react-i18next';
+import { STATS_NORMALIZED_API } from '../../../api/stats.normalized.api.ts';
 
 ModuleRegistry.registerModules([ServerSideRowModelModule]);
 
@@ -85,7 +86,8 @@ export function StatsGrid() {
             }
           }
 
-          const result = await STATS_API.getHierarchyData(requestParams);
+          const result =
+            await STATS_NORMALIZED_API.getHierarchyData(requestParams);
 
           params.success({
             rowData: result,

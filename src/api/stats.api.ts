@@ -40,6 +40,7 @@ class StatsApi {
   private resolvedMessages = new Map<string, IStatItem[]>();
   private db: AdStatsDatabase | null = null;
   private onProgress?: (progress: string) => void;
+  public rawData: IStatItemRaw[];
 
   constructor() {
     this.worker = new Worker(new URL('./mock.ts', import.meta.url));
@@ -50,6 +51,7 @@ class StatsApi {
           break;
       }
     };
+    this.rawData = [];
   }
 
   private sendMessageToWorker(messageData: {
@@ -90,6 +92,8 @@ class StatsApi {
       action: 'getStatsData',
       size,
     });
+
+    this.rawData = rawData;
 
     const hierarchyItems: IHierarchyStatItem[] = [];
 
