@@ -86,8 +86,7 @@ export function StatsGrid() {
             }
           }
 
-          const result =
-            await STATS_NORMALIZED_API.getHierarchyData(requestParams);
+          const result = await STATS_API.getHierarchyData(requestParams);
 
           params.success({
             rowData: result,

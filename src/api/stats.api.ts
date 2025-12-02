@@ -264,36 +264,25 @@ class StatsApi {
 
     switch (level) {
       case 0:
-        const allArticles = await this.db!.stats.where('level')
-          .equals(Levels.article)
+        return await this.db!.stats.where('level')
+          .equals(Levels.supplier)
           .toArray();
-        return this.aggregateToSuppliers(allArticles);
 
       case 1:
         if (!parentSupplier)
           throw new Error('parentSupplier required for level 1');
-        const supplierArticles = await this.db!.stats.where(
-          '[level+parentSupplier]',
-        )
-          .equals([Levels.article, parentSupplier])
+        return await this.db!.stats.where('[level+parentSupplier]')
+          .equals([Levels.brand, parentSupplier])
           .toArray();
-        return this.aggregateToBrands(supplierArticles, parentSupplier);
 
       case 2:
         if (!parentSupplier || !parentBrand)
           throw new Error(
             'parentSupplier and parentBrand required for level 2',
           );
-        const brandArticles = await this.db!.stats.where(
-          '[level+parentSupplier+parentBrand]',
-        )
-          .equals([Levels.article, parentSupplier, parentBrand])
+        return await this.db!.stats.where('[level+parentSupplier+parentBrand]')
+          .equals([Levels.type, parentSupplier, parentBrand])
           .toArray();
-        return this.aggregateToTypes(
-          brandArticles,
-          parentSupplier,
-          parentBrand,
-        );
 
       case 3:
         if (!parentSupplier || !parentBrand || !parentType)
@@ -311,127 +300,9 @@ class StatsApi {
     }
   }
 
-  private aggregateToSuppliers(
-    articles: IHierarchyStatItem[],
-  ): IHierarchyStatItem[] {
-    const suppliersMap = new Map<string, IHierarchyStatItem>();
+  // ... остальные методы aggregateToSuppliers, aggregateToBrands, aggregateToTypes, calculateDerivedMetrics и т.д.
 
-    for (const article of articles) {
-      const supplierKey = article.supplier;
-
-      if (!suppliersMap.has(supplierKey)) {
-        suppliersMap.set(supplierKey, {
-          level: Levels.supplier,
-          supplier: supplierKey,
-          brand: '',
-          type: '',
-          article: '',
-          cost: new Array(30).fill(0),
-          orders: new Array(30).fill(0),
-          returns: new Array(30).fill(0),
-          revenue: new Array(30).fill(0),
-          buyouts: new Array(30).fill(0),
-          lastUpdate: new Date().toISOString(),
-          childCount: 0,
-        });
-      }
-
-      const supplier = suppliersMap.get(supplierKey)!;
-      this.aggregateItemData(supplier, article);
-      supplier.childCount += 1;
-    }
-
-    return Array.from(suppliersMap.values()).map((supplier) =>
-      this.calculateDerivedMetrics(supplier),
-    );
-  }
-
-  private aggregateToBrands(
-    articles: IHierarchyStatItem[],
-    parentSupplier: string,
-  ): IHierarchyStatItem[] {
-    const brandsMap = new Map<string, IHierarchyStatItem>();
-
-    for (const article of articles) {
-      const brandKey = article.brand;
-
-      if (!brandsMap.has(brandKey)) {
-        brandsMap.set(brandKey, {
-          level: Levels.brand,
-          supplier: parentSupplier,
-          brand: brandKey,
-          type: '',
-          article: '',
-          parentSupplier: parentSupplier,
-          cost: new Array(30).fill(0),
-          orders: new Array(30).fill(0),
-          returns: new Array(30).fill(0),
-          revenue: new Array(30).fill(0),
-          buyouts: new Array(30).fill(0),
-          lastUpdate: new Date().toISOString(),
-          childCount: 0,
-        });
-      }
-
-      const brand = brandsMap.get(brandKey)!;
-      this.aggregateItemData(brand, article);
-      brand.childCount += 1;
-    }
-
-    return Array.from(brandsMap.values()).map((brand) =>
-      this.calculateDerivedMetrics(brand),
-    );
-  }
-
-  private aggregateToTypes(
-    articles: IHierarchyStatItem[],
-    parentSupplier: string,
-    parentBrand: string,
-  ): IHierarchyStatItem[] {
-    const typesMap = new Map<string, IHierarchyStatItem>();
-
-    for (const article of articles) {
-      const typeKey = article.type;
-
-      if (!typesMap.has(typeKey)) {
-        typesMap.set(typeKey, {
-          level: Levels.type,
-          supplier: parentSupplier,
-          brand: parentBrand,
-          type: typeKey,
-          article: '',
-          parentSupplier: parentSupplier,
-          parentBrand: parentBrand,
-          cost: new Array(30).fill(0),
-          orders: new Array(30).fill(0),
-          returns: new Array(30).fill(0),
-          revenue: new Array(30).fill(0),
-          buyouts: new Array(30).fill(0),
-          lastUpdate: new Date().toISOString(),
-          childCount: 0,
-        });
-      }
-
-      const type = typesMap.get(typeKey)!;
-      this.aggregateItemData(type, article);
-      type.childCount += 1;
-    }
-
-    return Array.from(typesMap.values()).map((type) =>
-      this.calculateDerivedMetrics(type),
-    );
-  }
-
-  private aggregateItemData(
-    target: IHierarchyStatItem,
-    source: IHierarchyStatItem,
-  ): void {
-    for (let i = 0; i < 30; i++) {
-      target.cost![i] += source.cost[i] || 0;
-      target.orders![i] += source.orders[i] || 0;
-      target.returns![i] += source.returns[i] || 0;
-    }
-  }
+  // Методы aggregateTo* можно при необходимости удалить, если они точно не нужны в запросах
 
   private calculateDerivedMetrics(
     item: IHierarchyStatItem,
